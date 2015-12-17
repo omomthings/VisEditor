@@ -1,0 +1,21 @@
+In order to use the Continuous Scene system, there are a very few rules to follow:
+A scene is created like you would do with a normal Scene, first you create a ContinuousVisAssetManager, put there all your systems and parameters, then you load your scene.
+The particularity here is that you need to pass to the constructor the standard name of your scenes, like this:
+
+    ContinuousVisAssetManager assetManager = new ContinuousVisAssetManager ( "myScenes/lvl" , 3 , batch );
+
+In this example my scenes are in the folder "myScenes/" and are called "lvl000.scene" - "lvl001.scene" - "lvl002.scene" and so on.
+
+Adding your systems and rendering is done like with a classic scene.
+When you need to load the next scene, you just use assetManager.loadNextScene() / assetManager.loadPreviousScene().
+When loading a new scene the manager removes the entities from one of the scenes, so if you need some entities to be persistent (e.g. your player) you just inform the assetManager about it like this
+
+assetManager.doNotDelete ( myEntity );
+
+You can next remove it from the saved list if you want to like this
+
+assetManager.removeSavedEntity ( myEntity )
+
+This way the entity will be attached to the first scene.
+
+If you create entities manually you need to inform the asset manager by telling him if the entity is either attached to the first scene or the second one, or if it should be saved, otherwise you will need to destroy it from the world by your self!
