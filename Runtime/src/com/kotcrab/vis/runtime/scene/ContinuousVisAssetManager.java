@@ -206,8 +206,11 @@ public class ContinuousVisAssetManager extends AssetManager {
         savedEntities.add(entity);
     }
 
+    /**used to replace in the scene entity list an entity that was previously saved*/
     public void removeSavedEntity(Entity entity) {
-        savedEntities.removeValue(entity, false);
+        if (savedEntities.removeValue(entity, false)){
+            firstSceneEntities.add(entity);
+        }
     }
 
     private void doSaveEntities() {
