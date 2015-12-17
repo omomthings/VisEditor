@@ -1,4 +1,6 @@
 In order to use the Continuous Scene system, there are a very few rules to follow:
+First of all whene creating a scene in the editor, one of the entities have to hold a Variable with the key DIRECTION and one of the values
+LEFT | RIGHT | UP | DOWN , this is needed to know how to place scenes next to each other, the direction describes where the scene should be placed with regard to the previous scene.
 A scene is created like you would do with a normal Scene, first you create a ContinuousVisAssetManager, put there all your systems and parameters, then you load your scene.
 The particularity here is that you need to pass to the constructor the standard name of your scenes, like this:
 
