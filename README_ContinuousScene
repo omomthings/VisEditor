@@ -6,6 +6,9 @@ The particularity here is that you need to pass to the constructor the standard 
 
     ContinuousVisAssetManager assetManager = new ContinuousVisAssetManager ( "myScenes/lvl" , 3 , batch );
 
+    parameter.config.addSystem (new MySystem());
+    scene = assetManager.loadInitialSceneNow(parameter);
+
 In this example my scenes are in the folder "myScenes/" and are called "lvl000.scene" - "lvl001.scene" - "lvl002.scene" and so on.
 
 Adding your systems and rendering is done like with a classic scene.
