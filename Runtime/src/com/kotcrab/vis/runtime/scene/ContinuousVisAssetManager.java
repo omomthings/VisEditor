@@ -237,7 +237,6 @@ public class ContinuousVisAssetManager extends AssetManager {
                     try {
                         dir = ((Variables) c).get("DIRECTION");
 
-
                         if (dir.equals("UP"))
                             direction = Direction.UP;
                         else if (dir.equals("DOWN"))
@@ -288,56 +287,35 @@ public class ContinuousVisAssetManager extends AssetManager {
     private void moveSceneTo(boolean moveFirstScene, Direction direction) {
         Array<Entity> sceneToMove = (moveFirstScene) ? firstSceneEntities : secondSceneEntities;
         EntityEngine engine = scene.getEntityEngine();
-        Viewport viewport = engine.getManager(CameraManager.class).getViewport();
+        Viewport viewport = engine.getSystem(CameraManager.class).getViewport();
         // TODO: 03/12/2015 change this in order to have different scene sizes!
         //direction are reversed! e.g if next scene should come on the right, the actual scene goes to left
+        float deltaX=0 , deltaY=0;
         switch (direction) {
             case LEFT:
-                for (Entity entity : sceneToMove) {
-                    Bag<Component> bag = entity.getComponents(new Bag<Component>());
-                    for (Object component : bag.getData()) {
-                        if (component instanceof PositionOwner) {
-                            float x = ((PositionOwner) component).getX() + viewport.getWorldWidth();
-                            ((PositionOwner) component).setX(x);
-                        }
-                    }
-                }
+                deltaX=viewport.getWorldWidth();
                 break;
             case RIGHT:
-                for (Entity entity : sceneToMove) {
-                    Bag bag = entity.getComponents(new Bag<Component>());
-                    for (Object component : bag.getData()) {
-                        if (component instanceof PositionOwner) {
-                            float x = ((PositionOwner) component).getX() - viewport.getWorldWidth();
-                            ((PositionOwner) component).setX(x);
-                        }
-                    }
-                }
+                deltaX=-viewport.getWorldWidth();
                 break;
             case UP:
-                for (Entity entity : sceneToMove) {
-                    Bag<Component> bag = entity.getComponents(new Bag<Component>());
-                    for (Object component : bag.getData()) {
-                        if (component instanceof PositionOwner) {
-                            float y = ((PositionOwner) component).getY() - viewport.getWorldHeight();
-                            ((PositionOwner) component).setY(y);
-                        }
-                    }
-                }
+                deltaY=-viewport.getWorldHeight();
                 break;
             case DOWN:
-                for (Entity entity : sceneToMove) {
-                    Bag<Component> bag = entity.getComponents(new Bag<Component>());
-                    for (Object component : bag.getData()) {
-                        if (component instanceof PositionOwner) {
-                            float y = ((PositionOwner) component).getY() + viewport.getWorldHeight();
-                            ((PositionOwner) component).setY(y);
-                        }
-                    }
-                }
+                deltaY=viewport.getWorldHeight();
                 break;
             default:
                 break;
+        }
+
+        for (Entity entity : sceneToMove) {
+            Bag<Component> bag = entity.getComponents(new Bag<Component>());
+            for (Object component : bag.getData()) {
+                if (component instanceof PositionOwner) {
+                    PositionOwner owner = (PositionOwner) component;
+                    owner.setPosition(owner.getX() + deltaX , owner.getY() + deltaY);
+                }
+            }
         }
     }
 
