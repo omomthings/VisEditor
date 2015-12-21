@@ -41,6 +41,7 @@ import com.kotcrab.vis.runtime.util.EntityEngineConfiguration;
 public class ContinuousScene {
     private CameraManager cameraManager;
     private EntityEngine engine;
+    static boolean firstTime=true;
     private EntityEngineConfiguration engineConfig;
 
     private Array<LayerData> layerData;
@@ -68,14 +69,16 @@ public class ContinuousScene {
             }
         }
 
+        if (firstTime) {    //if it's not the first time we create a scene, no need to recreate systems!
+                            // the scene will not be used
+            firstTime=false;
+            for (SceneConfig.ConfigElement element : config.getConfigElements()) {
+                if (element.disabled) continue;
+                engineConfig.setSystem(element.provider.create(engineConfig, context, data));
+            }
 
-        for (SceneConfig.ConfigElement element : config.getConfigElements()) {
-            if (element.disabled) continue;
-            engineConfig.setSystem(element.provider.create(engineConfig, context, data));
+            cameraManager = engineConfig.getSystem(CameraManager.class);
         }
-
-
-        cameraManager = engineConfig.getSystem(CameraManager.class);
 
         for (EntitySupport support : context.supports) {
             support.registerSystems(runtimeConfig, engineConfig, assetsManager);
