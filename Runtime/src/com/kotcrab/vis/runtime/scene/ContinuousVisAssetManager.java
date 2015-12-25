@@ -1,23 +1,21 @@
 package com.kotcrab.vis.runtime.scene;
 
-import com.artemis.Component;
 import com.artemis.Entity;
-import com.artemis.utils.Bag;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.assets.loaders.FileHandleResolver;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.kotcrab.vis.runtime.component.Variables;
+import com.kotcrab.vis.runtime.component.PhysicsBody;
+import com.kotcrab.vis.runtime.component.Transform;
 import com.kotcrab.vis.runtime.data.EntityData;
 import com.kotcrab.vis.runtime.data.SceneData;
 import com.kotcrab.vis.runtime.font.FontProvider;
 import com.kotcrab.vis.runtime.font.FreeTypeFontProvider;
-import com.kotcrab.vis.runtime.properties.PositionOwner;
 import com.kotcrab.vis.runtime.system.CameraManager;
 import com.kotcrab.vis.runtime.util.EntityEngine;
 
@@ -53,7 +51,6 @@ public class ContinuousVisAssetManager extends AssetManager {
         secondSceneEntities = new Array<Entity>();
         sceneLoader = new ContinuousSceneLoader(batch);
         setLoader(ContinuousScene.class, sceneLoader);
-        FileHandleResolver resolver = new InternalFileHandleResolver();
     }
 
     public ContinuousScene getSceneInstance() {
@@ -117,14 +114,14 @@ public class ContinuousVisAssetManager extends AssetManager {
      * returns the name of the given scene number
      */
     String getSceneName(int number) {
-        return String.format(standardName + "%" + numFormat + "d.scene", number);
+        return String.format(standardName + "%0" + numFormat + "d.scene", number);
     }
 
 
     public void loadNextScene() {
         Gdx.app.debug("ContinuousVisAssetManager", "Loading next scene");
         sceneNumber++;
-        if (Gdx.files.internal(getSceneName(sceneNumber+1)).exists()) {
+        if (Gdx.files.internal(getSceneName(sceneNumber + 1)).exists()) {
 
             doSaveEntities();
             secondSceneEntities.addAll(savedEntities);
@@ -151,9 +148,8 @@ public class ContinuousVisAssetManager extends AssetManager {
             addDataToScene(nextData, false);
             scene.reInit();
             Gdx.app.debug("ContinuousVisAssetManager", "Finished loading next scene successfully");
-        }
-        else{
-            Gdx.app.error("ContinuousVisAssetManager","The scene "+getSceneName(sceneNumber+1)+" does not exist!");
+        } else {
+            Gdx.app.error("ContinuousVisAssetManager", "The scene " + getSceneName(sceneNumber + 1) + " does not exist!");
             sceneNumber--;
         }
     }
@@ -190,9 +186,8 @@ public class ContinuousVisAssetManager extends AssetManager {
             moveSceneTo(true, secondSceneDirection);
 
             Gdx.app.debug("ContinuousVisAssetManager", "Finished loading previous scene successfully");
-        }
-        else {
-            Gdx.app.error("ContinuousVisAssetManager","The Scene "+getSceneName(sceneNumber)+" does not exist!");
+        } else {
+            Gdx.app.error("ContinuousVisAssetManager", "The Scene " + getSceneName(sceneNumber) + " does not exist!");
             sceneNumber++;
         }
 
@@ -206,9 +201,11 @@ public class ContinuousVisAssetManager extends AssetManager {
         savedEntities.add(entity);
     }
 
-    /**used to replace in the scene entity list an entity that was previously saved*/
+    /**
+     * used to replace in the scene entity list an entity that was previously saved
+     */
     public void removeSavedEntity(Entity entity) {
-        if (savedEntities.removeValue(entity, false)){
+        if (savedEntities.removeValue(entity, false)) {
             firstSceneEntities.add(entity);
         }
     }
@@ -230,31 +227,24 @@ public class ContinuousVisAssetManager extends AssetManager {
      */
     private Direction getDirection(SceneData data) {
         Direction direction = Direction.RIGHT;
-        for (EntityData entity : data.entities)
-            for (Component c : entity.components) {
-                if (c instanceof Variables) {
-                    String dir;
-                    try {
-                        dir = ((Variables) c).get("DIRECTION");
+        String dir;
+        dir = data.variables.get("DIRECTION", "none");
 
-                        if (dir.equals("UP"))
-                            direction = Direction.UP;
-                        else if (dir.equals("DOWN"))
-                            direction = Direction.DOWN;
-                        else if (dir.equals("LEFT"))
-                            direction = Direction.LEFT;
-                        else if (dir.equals("RIGHT"))
-                            direction = Direction.RIGHT;
-                        else
-                            Gdx.app.error("ContinuousVisAssetManager", "Direction is incorrectly set in the file " + getSceneName(sceneNumber + 1));
-                        Gdx.app.debug("ContinuousVisAssetManager", "Direction is set to " + dir);
-                        return direction;
-                    } catch (NullPointerException e) {
-                    }
-                }
-            }
-        Gdx.app.error("ContinuousVisAssetManager", "WARNING: Direction not found in the scene, Direction is set to default value :RIGHT, this might be wrong for your case," +
-                " please consider putting a variable component in any entity with the key \"DIRECTION\" and the corresponding value in Upper case ");
+        if (dir.equals("UP"))
+            direction=Direction.UP;
+        else if(dir.equals("DOWN"))
+            direction=Direction.DOWN;
+        else if(dir.equals("LEFT"))
+            direction=Direction.LEFT;
+        else if (dir.equals("RIGHT"))
+            direction=Direction.RIGHT;
+        else if(dir.equals("none"))
+            Gdx.app.error("ContinuousVisAssetManager", "WARNING: Direction not found in the scene, Direction is set to default value :RIGHT, this might be wrong for your case," +
+                    " please consider putting a variable component in any entity with the key \"DIRECTION\" and the corresponding value in Upper case ");
+        else
+            Gdx.app.error("ContinuousVisAssetManager", "Direction is incorrectly set in the file " + getSceneName(sceneNumber + 1));
+
+        Gdx.app.debug("ContinuousVisAssetManager", "Direction is set to " + direction);
         return direction;
     }
 
@@ -262,6 +252,7 @@ public class ContinuousVisAssetManager extends AssetManager {
      * @param direction the {@link Direction}
      * @return the opposite of the given {@link Direction}
      */
+
     private Direction oppositeDirectionOf(Direction direction) {
         switch (direction) {
             case UP:
@@ -290,31 +281,32 @@ public class ContinuousVisAssetManager extends AssetManager {
         Viewport viewport = engine.getSystem(CameraManager.class).getViewport();
         // TODO: 03/12/2015 change this in order to have different scene sizes!
         //direction are reversed! e.g if next scene should come on the right, the actual scene goes to left
-        float deltaX=0 , deltaY=0;
+        float deltaX = 0, deltaY = 0;
         switch (direction) {
             case LEFT:
-                deltaX=viewport.getWorldWidth();
+                deltaX = viewport.getWorldWidth();
                 break;
             case RIGHT:
-                deltaX=-viewport.getWorldWidth();
+                deltaX = -viewport.getWorldWidth();
                 break;
             case UP:
-                deltaY=-viewport.getWorldHeight();
+                deltaY = -viewport.getWorldHeight();
                 break;
             case DOWN:
-                deltaY=viewport.getWorldHeight();
+                deltaY = viewport.getWorldHeight();
                 break;
             default:
                 break;
         }
 
         for (Entity entity : sceneToMove) {
-            Bag<Component> bag = entity.getComponents(new Bag<Component>());
-            for (Object component : bag.getData()) {
-                if (component instanceof PositionOwner) {
-                    PositionOwner owner = (PositionOwner) component;
-                    owner.setPosition(owner.getX() + deltaX , owner.getY() + deltaY);
-                }
+            Transform transform = entity.getComponent(Transform.class);
+            if (transform != null)
+                transform.setPosition(transform.getX() + deltaX, transform.getY() + deltaY);
+            PhysicsBody physicsBody = entity.getComponent(PhysicsBody.class);
+            if (physicsBody != null) {
+                Vector2 vector2 = physicsBody.body.getPosition().add(deltaX, deltaY);
+                physicsBody.body.setTransform(vector2, 0);
             }
         }
     }

@@ -24,6 +24,7 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.utils.Array;
 import com.kotcrab.vis.runtime.RuntimeConfiguration;
 import com.kotcrab.vis.runtime.RuntimeContext;
+import com.kotcrab.vis.runtime.component.Variables;
 import com.kotcrab.vis.runtime.data.LayerData;
 import com.kotcrab.vis.runtime.data.SceneData;
 import com.kotcrab.vis.runtime.plugin.EntitySupport;
@@ -41,15 +42,16 @@ import com.kotcrab.vis.runtime.util.EntityEngineConfiguration;
 public class ContinuousScene {
     private CameraManager cameraManager;
     private EntityEngine engine;
-    static boolean firstTime=true;
     private EntityEngineConfiguration engineConfig;
-
+    static boolean firstTime=true;
     private Array<LayerData> layerData;
+    private Variables variables;
 
 
     /** Used by framework, not indented for external use */
-    public ContinuousScene (RuntimeContext context, SceneData data, ContinuousSceneLoader.ContinuousSceneParameter parameter) {
+    public ContinuousScene(RuntimeContext context, SceneData data, ContinuousSceneLoader.ContinuousSceneParameter parameter) {
         layerData = data.layers;
+        variables=data.variables;
 
         AssetManager assetsManager = context.assetsManager;
         RuntimeConfiguration runtimeConfig = context.configuration;
@@ -57,9 +59,8 @@ public class ContinuousScene {
         EntityEngineConfiguration engineConfig = new EntityEngineConfiguration();
 
         if (parameter == null) parameter = new ContinuousSceneLoader.ContinuousSceneParameter();
-        SceneConfig config = parameter.config;
+        SceneConfig config= parameter.config;
         config.sort();
-        // FIXME: 17/12/2015 need to review this! may need to remake the SceneConfig file..
 
         if (parameter.respectScenePhysicsSettings) {
             if (data.physicsSettings.physicsEnabled) {
@@ -69,8 +70,8 @@ public class ContinuousScene {
             }
         }
 
-        if (firstTime) {    //if it's not the first time we create a scene, no need to recreate systems!
-                            // the scene will not be used
+        // FIXME: 21/12/2015 need to review this and create a second scene constructor that dont load all features that are not needed!
+        if(firstTime) {
             firstTime=false;
             for (SceneConfig.ConfigElement element : config.getConfigElements()) {
                 if (element.disabled) continue;
@@ -80,12 +81,19 @@ public class ContinuousScene {
             cameraManager = engineConfig.getSystem(CameraManager.class);
         }
 
+
         for (EntitySupport support : context.supports) {
             support.registerSystems(runtimeConfig, engineConfig, assetsManager);
         }
 
         this.engineConfig=engineConfig;
 
+    }
+
+
+
+    public Variables getSceneVariables () {
+        return variables;
     }
 
 

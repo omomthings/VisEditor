@@ -53,7 +53,7 @@ public class ContinuousSceneLoader extends AsynchronousAssetLoader<ContinuousSce
 
     RuntimeConfiguration configuration;
     Batch batch;
-    Array <EntitySupport> supports=new Array<EntitySupport>();
+    Array<EntitySupport> supports=new Array<EntitySupport>();
 
     ContinuousScene scene;
     SceneData data;
@@ -75,11 +75,11 @@ public class ContinuousSceneLoader extends AsynchronousAssetLoader<ContinuousSce
         this(batch, new InternalFileHandleResolver(), new RuntimeConfiguration());
     }
 
-    public ContinuousSceneLoader(Batch batch,RuntimeConfiguration configuration) {
+    public ContinuousSceneLoader(Batch batch, RuntimeConfiguration configuration) {
         this(batch, new InternalFileHandleResolver(),configuration );
     }
 
-    public ContinuousSceneLoader(Batch batch,FileHandleResolver resolver, RuntimeConfiguration configuration) {
+    public ContinuousSceneLoader(Batch batch, FileHandleResolver resolver, RuntimeConfiguration configuration) {
         super(resolver);
         setBatch(batch);
         this.configuration=configuration;
@@ -91,7 +91,7 @@ public class ContinuousSceneLoader extends AsynchronousAssetLoader<ContinuousSce
         RuntimeContext context=new RuntimeContext(configuration,batch,manager,new ImmutableArray<EntitySupport>(supports));
         scene =new ContinuousScene(context,data,parameter);
 
-        // FIXME: 17/12/2015 may need to review this!
+        // FIXME: 17/12/2015 need to review this!!
     }
 
     @Override
@@ -197,7 +197,7 @@ public class ContinuousSceneLoader extends AsynchronousAssetLoader<ContinuousSce
 
 
     /** Allows to add additional system and managers into {@link EntityEngine} */
-    static public class ContinuousSceneParameter extends AssetLoaderParameters<ContinuousScene>{
+    static public class ContinuousSceneParameter extends AssetLoaderParameters<ContinuousScene> {
         public SceneConfig config=new SceneConfig();
         /**
          * If true (the default) scene data will be used to determinate whether physics systems needs
